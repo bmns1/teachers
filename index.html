@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <title>SVA Educator Feedback Report - Confidential (DO NOT SHARE)</title>
+  <title>SVA Educator Feedback Report</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
@@ -100,7 +100,7 @@
 <body>
 
 <div class="top-nav">
-  <div class="nav-brand">SVA Educator Insights  - Confidential (DO NOT SHARE)</div>
+  <div class="nav-brand">SVA Educator Insights</div>
   <div class="nav-teacher" id="nav-teacher-name">Authenticating...</div>
   <button class="btn-print" onclick="window.print()">Print Report</button>
 </div>
@@ -138,14 +138,14 @@
   <div id="questions-container">
     </div>
 
-  <div class="grid-layout">
-    <div class="card">
-      <h2 style="color: #10b981; border-bottom-color: #10b981;">Celebrated Strengths</h2>
-      <div class="feedback-section" id="feedback-strengths"></div>
+  <div class="feedback-grid">
+    <div class="feedback-col">
+      <h3 class="feedback-title" style="color: var(--color-sa);">Celebrated Strengths</h3>
+      <div id="list-strengths"></div>
     </div>
-    <div class="card">
-      <h2 style="color: #f59e0b; border-bottom-color: #f59e0b;">Opportunities for Growth</h2>
-      <div class="feedback-section" id="feedback-enhance"></div>
+    <div class="feedback-col">
+      <h3 class="feedback-title" style="color: var(--color-d);">Opportunities for Growth</h3>
+      <div id="list-enhance"></div>
     </div>
   </div>
 
@@ -299,8 +299,8 @@
       }
     });
 
-    if (!containerS.innerHTML) containerS.innerHTML = "<div style='color:#94a3b8; font-style:italic;'>Written strengths provided though email.</div>";
-    if (!containerE.innerHTML) containerE.innerHTML = "<div style='color:#94a3b8; font-style:italic;'>Written strengths provided though email.</div>";
+    if (!containerS.innerHTML) containerS.innerHTML = "<div style='color:#94a3b8; font-style:italic;'>Written strengths provided by email.</div>";
+    if (!containerE.innerHTML) containerE.innerHTML = "<div style='color:#94a3b8; font-style:italic;'>Written strengths provided by email.</div>";
   }
 </script>
 </body>
