@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>Educator Feedback Report</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --sva-primary: #0f766e; --sva-accent: #0d9488; --sva-bg: #f8fafc; 
+      --sva-card: #ffffff; --sva-border: #e2e8f0; --sva-text: #334155;
+    }
+    body { font-family: 'Inter', sans-serif; background-color: var(--sva-bg); color: var(--sva-text); margin: 0; padding-bottom: 50px; }
+    .header { background-color: var(--sva-primary); color: white; padding: 30px 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
+    .header p { margin: 10px 0 0 0; color: #ccfbf1; font-size: 16px; }
+    .container { max-width: 1000px; margin: -20px auto 30px auto; padding: 0 20px; position: relative; z-index: 10; }
+    .card { background: var(--sva-card); padding: 30px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 1px solid var(--sva-border); margin-bottom: 25px; }
+    .card h2 { margin-top: 0; color: var(--sva-primary); font-size: 20px; border-bottom: 2px solid var(--sva-bg); padding-bottom: 12px; margin-bottom: 20px;}
+    .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 25px; }
+    .kpi-card { background: #f0fdfa; padding: 25px; border-radius: 12px; border: 1px solid #ccfbf1; text-align: center; }
+    .kpi-title { font-size: 14px; font-weight: 600; color: #0f766e; text-transform: uppercase; margin-bottom: 5px;}
+    .kpi-value { font-size: 42px; font-weight: 800; color: #0d9488; }
+    .chart-container { position: relative; height: 350px; width: 100%; margin: 0 auto;}
+    .question-list { display: flex; flex-direction: column; gap: 15px; }
+    .question-item { background: white; border: 1px solid var(--sva-border); border-left: 4px solid var(--sva-primary); padding: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 20px;}
+    .q-text { font-size: 15px; font-weight: 500; line-height: 1.5; flex: 1;}
+    .q-score { font-size: 24px; font-weight: 800; color: var(--sva-primary); background: #f0fdfa; padding: 10px 20px; border-radius: 8px; text-align: center; min-width: 60px;}
+    .q-label { font-size: 11px; color: #64748b; text-transform: uppercase; display: block; font-weight: 600;}
+    .feedback-section { margin-top: 20px; }
+    .feedback-item { background: #fff; border: 1px solid var(--sva-border); padding: 15px 20px; border-radius: 8px; margin-bottom: 15px; font-size: 15px; line-height: 1.6; font-style: italic; color: #475569;}
+    .feedback-item::before { content: '"'; font-size: 20px; color: #cbd5e1; font-weight: bold; margin-right: 5px; }
+    .loader { text-align: center; padding: 50px; font-size: 18px; color: #64748b; font-weight: 500; }
+    .error-msg { background: #fee2e2; color: #b91c1c; padding: 20px; border-radius: 8px; text-align: center; font-weight: 600; border: 1px solid #fca5a5; margin-top: 50px;}
+    .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+    @media (max-width: 768px) {
+      .grid-layout { grid-template-columns: 1fr; }
+      .question-item { flex-direction: column; align-items: flex-start; text-align: left;}
+      .q-score { align-self: flex-start; width: 100%; box-sizing: border-box;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Educator Feedback Report</h1>
+  <p id="teacher-name-display">Verifying secure access...</p>
+</div>
+
+<div class="container" id="loading-state">
+  <div class="card loader">Securely fetching your feedback data...</div>
+</div>
+
+<div class="container" id="error-state" style="display: none;">
+  <div class="error-msg" id="error-text">Unable to load data. Please check your link.</div>
+</div>
+
+<div class="container" id="dashboard-ui" style="display: none;">
+  
+  <div class="card" style="background: #f8fafc; border: none; box-shadow: none; padding: 20px; text-align: center; color: #475569; font-size: 15px; line-height: 1.6; margin-bottom: 30px;">
+    <strong>Thank you for your dedication to our students!</strong><br>
+    These survey results are a reflection of your hard work and an opportunity to celebrate your successes. Scores are based on a 4.0 scale (4 = Strongly Agree, 3 = Agree).
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-title">Overall Average Score</div>
+      <div class="kpi-value" id="avg-score">0.00</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Total Parent Reviews</div>
+      <div class="kpi-value" id="total-reviews">0</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Detailed Performance Metrics</h2>
+    <div class="question-list">
+      <div class="question-item">
+        <div class="q-text">1. The teacher effectively fosters my child's academic growth and keeps them engaged in learning.</div>
+        <div class="q-score"><span id="q1-score">0.0</span><span class="q-label">Avg Score</span></div>
+      </div>
+      <div class="question-item">
+        <div class="q-text">2. The teacher creates a positive environment that enhances my child's social and emotional well-being.</div>
+        <div class="q-score"><span id="q2-score">0.0</span><span class="q-label">Avg Score</span></div>
+      </div>
+      <div class="question-item">
+        <div class="q-text">3. My child feels valued, respected, and supported by this teacher.</div>
+        <div class="q-score"><span id="q3-score">0.0</span><span class="q-label">Avg Score</span></div>
+      </div>
+      <div class="question-item">
+        <div class="q-text">4. The teacher provides clear and timely updates regarding my child's progress and classroom activities.</div>
+        <div class="q-score"><span id="q4-score">0.0</span><span class="q-label">Avg Score</span></div>
+      </div>
+      <div class="question-item">
+        <div class="q-text">5. The teacher is responsive and partners effectively with me to support my child.</div>
+        <div class="q-score"><span id="q5-score">0.0</span><span class="q-label">Avg Score</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Criteria Profile</h2>
+    <div class="chart-container">
+      <canvas id="radarChart"></canvas>
+    </div>
+  </div>
+
+  <div class="grid-layout">
+    <div class="card">
+      <h2 style="color: #10b981; border-bottom-color: #10b981;">Celebrated Strengths</h2>
+      <div class="feedback-section" id="feedback-strengths"></div>
+    </div>
+    <div class="card">
+      <h2 style="color: #f59e0b; border-bottom-color: #f59e0b;">Opportunities for Growth</h2>
+      <div class="feedback-section" id="feedback-enhance"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // *** CRITICAL: REPLACE WITH YOUR GOOGLE APPS SCRIPT URL ***
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbx_jEsEmsiWahpS3Yvr1WcDJj6kHWNbu5cJdcAgr9llVlnz3juSZX3MDMi6V3djElZy/exec"; 
+  
+  const scoreMap = { "Strongly Agree": 4, "Agree": 3, "Disagree": 2, "Strongly Disagree": 1 };
+  
+  // Extract the secure ID from the URL (e.g., ?id=tch_837F29)
+  const urlParams = new URLSearchParams(window.location.search);
+  const accessId = urlParams.get('id');
+
+  if (!accessId) {
+    showError("Secure access ID missing. Please use the exact link provided by administration.");
+  } else {
+    fetchTeacherData(accessId);
+  }
+
+  function fetchTeacherData(id) {
+    // Only sending the action and the ID. No tokens.
+    const requestUrl = `${GAS_API_URL}?action=getTeacherResults&id=${encodeURIComponent(id)}`;
+    
+    fetch(requestUrl)
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          document.getElementById('teacher-name-display').innerText = res.teacherName;
+          if (res.data.length === 0) {
+            showError(`No survey responses recorded yet for ${res.teacherName}.`);
+            return;
+          }
+          processAndRender(res.data);
+        } else {
+          showError(res.error);
+        }
+      })
+      .catch(err => {
+        showError("Network error. Please try again later.");
+      });
+  }
+
+  function showError(msg) {
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('dashboard-ui').style.display = 'none';
+    const errorState = document.getElementById('error-state');
+    errorState.style.display = 'block';
+    document.getElementById('error-text').innerText = msg;
+  }
+
+  function processAndRender(data) {
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('dashboard-ui').style.display = 'block';
+
+    document.getElementById('total-reviews').innerText = data.length;
+
+    let scores = { q1: [], q2: [], q3: [], q4: [], q5: [] };
+    
+    data.forEach(row => {
+      ['q1', 'q2', 'q3', 'q4', 'q5'].forEach(q => {
+        let val = scoreMap[row[q]];
+        if (val) scores[q].push(val);
+      });
+    });
+
+    const getAvg = (arr) => arr.length ? (arr.reduce((a,b) => a+b, 0) / arr.length).toFixed(2) : "0.00";
+    
+    const avgData = [getAvg(scores.q1), getAvg(scores.q2), getAvg(scores.q3), getAvg(scores.q4), getAvg(scores.q5)];
+    
+    document.getElementById('q1-score').innerText = avgData[0];
+    document.getElementById('q2-score').innerText = avgData[1];
+    document.getElementById('q3-score').innerText = avgData[2];
+    document.getElementById('q4-score').innerText = avgData[3];
+    document.getElementById('q5-score').innerText = avgData[4];
+
+    const validAvgs = avgData.filter(v => parseFloat(v) > 0);
+    const overallAvg = validAvgs.length ? (validAvgs.reduce((a,b) => parseFloat(a)+parseFloat(b), 0) / validAvgs.length).toFixed(2) : "0.00";
+    document.getElementById('avg-score').innerText = overallAvg;
+
+    renderRadarChart(avgData);
+
+    const containerS = document.getElementById('feedback-strengths'); 
+    const containerE = document.getElementById('feedback-enhance');
+    containerS.innerHTML = ''; containerE.innerHTML = '';
+    
+    [...data].reverse().forEach(row => {
+      if (row.strengths && row.strengths.trim()) {
+        containerS.innerHTML += `<div class="feedback-item">${row.strengths}</div>`;
+      }
+      if (row.enhance && row.enhance.trim()) {
+        containerE.innerHTML += `<div class="feedback-item">${row.enhance}</div>`;
+      }
+    });
+
+    if (!containerS.innerHTML) containerS.innerHTML = "<div style='color:#94a3b8; text-align:center;'>No written strengths provided yet.</div>";
+    if (!containerE.innerHTML) containerE.innerHTML = "<div style='color:#94a3b8; text-align:center;'>No written feedback provided yet.</div>";
+  }
+
+  function renderRadarChart(dataArr) {
+    const ctx = document.getElementById('radarChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'radar',
+      data: { 
+        labels: ['Academic Growth', 'Social/Emotional', 'Respect & Support', 'Communication', 'Partnership'], 
+        datasets: [{ 
+          data: dataArr, 
+          backgroundColor: 'rgba(13, 148, 136, 0.2)', 
+          borderColor: '#0f766e', 
+          borderWidth: 2, 
+          pointBackgroundColor: '#0f766e',
+          pointRadius: 4 
+        }] 
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        scales: { 
+          r: { 
+            min: 0, 
+            max: 4, 
+            ticks: { stepSize: 1, backdropColor: 'transparent' },
+            pointLabels: { font: { size: 13, family: 'Inter' } }
+          } 
+        }, 
+        plugins: { legend: { display: false } } 
+      }
+    });
+  }
+</script>
+</body>
+</html>
