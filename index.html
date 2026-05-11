@@ -23,7 +23,10 @@
     .kpi-card { background: #f0fdfa; padding: 25px; border-radius: 12px; border: 1px solid #ccfbf1; text-align: center; }
     .kpi-title { font-size: 14px; font-weight: 600; color: #0f766e; text-transform: uppercase; margin-bottom: 5px;}
     .kpi-value { font-size: 42px; font-weight: 800; color: #0d9488; }
-    .chart-container { position: relative; height: 350px; width: 100%; margin: 0 auto;}
+    
+    /* Increased height to comfortably fit the stacked bar chart */
+    .chart-container { position: relative; height: 400px; width: 100%; margin: 0 auto;}
+    
     .question-list { display: flex; flex-direction: column; gap: 15px; }
     .question-item { background: white; border: 1px solid var(--sva-border); border-left: 4px solid var(--sva-primary); padding: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 20px;}
     .q-text { font-size: 15px; font-weight: 500; line-height: 1.5; flex: 1;}
@@ -61,7 +64,7 @@
   
   <div class="card" style="background: #f8fafc; border: none; box-shadow: none; padding: 20px; text-align: center; color: #475569; font-size: 15px; line-height: 1.6; margin-bottom: 30px;">
     <strong>Thank you for your dedication to our students!</strong><br>
-    These survey results are a reflection of your hard work and an opportunity to celebrate your successes. Scores are based on a 4.0 scale (4 = Strongly Agree, 3 = Agree).
+    These survey results are a reflection of your hard work and an opportunity to celebrate your successes. Scores are based on a 4.0 scale.
   </div>
 
   <div class="kpi-grid">
@@ -76,7 +79,14 @@
   </div>
 
   <div class="card">
-    <h2>Detailed Performance Metrics</h2>
+    <h2>Response Distribution (Exact Votes)</h2>
+    <div class="chart-container">
+      <canvas id="distributionChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Detailed Averages</h2>
     <div class="question-list">
       <div class="question-item">
         <div class="q-text">1. The teacher effectively fosters my child's academic growth and keeps them engaged in learning.</div>
@@ -101,13 +111,6 @@
     </div>
   </div>
 
-  <div class="card">
-    <h2>Criteria Profile</h2>
-    <div class="chart-container">
-      <canvas id="radarChart"></canvas>
-    </div>
-  </div>
-
   <div class="grid-layout">
     <div class="card">
       <h2 style="color: #10b981; border-bottom-color: #10b981;">Celebrated Strengths</h2>
@@ -127,7 +130,6 @@
   
   const scoreMap = { "Strongly Agree": 4, "Agree": 3, "Disagree": 2, "Strongly Disagree": 1 };
   
-  // Extract the secure ID from the URL (e.g., ?id=tch_837F29)
   const urlParams = new URLSearchParams(window.location.search);
   const accessId = urlParams.get('id');
 
@@ -138,7 +140,6 @@
   }
 
   function fetchTeacherData(id) {
-    // Only sending the action and the ID. No tokens.
     const requestUrl = `${GAS_API_URL}?action=getTeacherResults&id=${encodeURIComponent(id)}`;
     
     fetch(requestUrl)
@@ -176,15 +177,31 @@
 
     let scores = { q1: [], q2: [], q3: [], q4: [], q5: [] };
     
+    // Setup distribution counters for the exact votes
+    let distribution = {
+      q1: { "Strongly Agree": 0, "Agree": 0, "Disagree": 0, "Strongly Disagree": 0 },
+      q2: { "Strongly Agree": 0, "Agree": 0, "Disagree": 0, "Strongly Disagree": 0 },
+      q3: { "Strongly Agree": 0, "Agree": 0, "Disagree": 0, "Strongly Disagree": 0 },
+      q4: { "Strongly Agree": 0, "Agree": 0, "Disagree": 0, "Strongly Disagree": 0 },
+      q5: { "Strongly Agree": 0, "Agree": 0, "Disagree": 0, "Strongly Disagree": 0 }
+    };
+    
     data.forEach(row => {
       ['q1', 'q2', 'q3', 'q4', 'q5'].forEach(q => {
-        let val = scoreMap[row[q]];
+        let answerText = row[q] ? row[q].trim() : "";
+        let val = scoreMap[answerText];
+        
+        // Calculate numerical averages
         if (val) scores[q].push(val);
+        
+        // Tally exact distributions
+        if (distribution[q][answerText] !== undefined) {
+          distribution[q][answerText]++;
+        }
       });
     });
 
     const getAvg = (arr) => arr.length ? (arr.reduce((a,b) => a+b, 0) / arr.length).toFixed(2) : "0.00";
-    
     const avgData = [getAvg(scores.q1), getAvg(scores.q2), getAvg(scores.q3), getAvg(scores.q4), getAvg(scores.q5)];
     
     document.getElementById('q1-score').innerText = avgData[0];
@@ -197,7 +214,8 @@
     const overallAvg = validAvgs.length ? (validAvgs.reduce((a,b) => parseFloat(a)+parseFloat(b), 0) / validAvgs.length).toFixed(2) : "0.00";
     document.getElementById('avg-score').innerText = overallAvg;
 
-    renderRadarChart(avgData);
+    // Render the new stacked bar chart
+    renderDistributionChart(distribution);
 
     const containerS = document.getElementById('feedback-strengths'); 
     const containerE = document.getElementById('feedback-enhance');
@@ -216,33 +234,78 @@
     if (!containerE.innerHTML) containerE.innerHTML = "<div style='color:#94a3b8; text-align:center;'>No written feedback provided yet.</div>";
   }
 
-  function renderRadarChart(dataArr) {
-    const ctx = document.getElementById('radarChart').getContext('2d');
+  // NEW FUNCTION: Renders a Horizontal Stacked Bar Chart
+  function renderDistributionChart(distData) {
+    const ctx = document.getElementById('distributionChart').getContext('2d');
+    
+    // Labels for the Y-Axis
+    const labels = [
+      'Q1: Academic Growth', 
+      'Q2: Social/Emotional', 
+      'Q3: Respect & Support', 
+      'Q4: Communication', 
+      'Q5: Partnership'
+    ];
+
+    // Helper to extract data arrays for Chart.js
+    const getDataArray = (category) => [
+      distData.q1[category], 
+      distData.q2[category], 
+      distData.q3[category], 
+      distData.q4[category], 
+      distData.q5[category]
+    ];
+
     new Chart(ctx, {
-      type: 'radar',
+      type: 'bar',
       data: { 
-        labels: ['Academic Growth', 'Social/Emotional', 'Respect & Support', 'Communication', 'Partnership'], 
-        datasets: [{ 
-          data: dataArr, 
-          backgroundColor: 'rgba(13, 148, 136, 0.2)', 
-          borderColor: '#0f766e', 
-          borderWidth: 2, 
-          pointBackgroundColor: '#0f766e',
-          pointRadius: 4 
-        }] 
+        labels: labels, 
+        datasets: [
+          {
+            label: 'Strongly Agree',
+            data: getDataArray('Strongly Agree'),
+            backgroundColor: '#0f766e' // Dark Teal
+          },
+          {
+            label: 'Agree',
+            data: getDataArray('Agree'),
+            backgroundColor: '#14b8a6' // Light Teal
+          },
+          {
+            label: 'Disagree',
+            data: getDataArray('Disagree'),
+            backgroundColor: '#f59e0b' // Amber/Orange
+          },
+          {
+            label: 'Strongly Disagree',
+            data: getDataArray('Strongly Disagree'),
+            backgroundColor: '#ef4444' // Red
+          }
+        ] 
       },
       options: { 
+        indexAxis: 'y', // Makes the bar chart horizontal
         responsive: true, 
         maintainAspectRatio: false, 
         scales: { 
-          r: { 
-            min: 0, 
-            max: 4, 
-            ticks: { stepSize: 1, backdropColor: 'transparent' },
-            pointLabels: { font: { size: 13, family: 'Inter' } }
-          } 
+          x: { 
+            stacked: true, 
+            ticks: { stepSize: 1 } // Ensures the X axis only shows whole numbers (votes)
+          },
+          y: { 
+            stacked: true 
+          }
         }, 
-        plugins: { legend: { display: false } } 
+        plugins: { 
+          legend: { 
+            position: 'top',
+            labels: { font: { family: 'Inter', size: 13 } }
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false
+          }
+        } 
       }
     });
   }
