@@ -3,122 +3,149 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <title>Educator Feedback Report</title>
+  <title>SVA Educator Feedback Report</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
-      --sva-primary: #0f766e; --sva-accent: #0d9488; --sva-bg: #f8fafc; 
-      --sva-card: #ffffff; --sva-border: #e2e8f0; --sva-text: #334155;
+      /* Professional Corporate Palette */
+      --sva-primary: #0f766e; 
+      --sva-bg: #f8fafc; 
+      --sva-text: #1e293b;
+      --sva-text-light: #64748b;
+      --sva-border: #e2e8f0;
+      
+      /* Likert Scale Colors */
+      --color-sa: #059669; /* Strongly Agree - Dark Green */
+      --color-a: #34d399;  /* Agree - Light Green */
+      --color-d: #fbbf24;  /* Disagree - Amber */
+      --color-sd: #ef4444; /* Strongly Disagree - Red */
     }
-    body { font-family: 'Inter', sans-serif; background-color: var(--sva-bg); color: var(--sva-text); margin: 0; padding-bottom: 50px; }
-    .header { background-color: var(--sva-primary); color: white; padding: 30px 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
-    .header p { margin: 10px 0 0 0; color: #ccfbf1; font-size: 16px; }
-    .container { max-width: 1000px; margin: -20px auto 30px auto; padding: 0 20px; position: relative; z-index: 10; }
-    .card { background: var(--sva-card); padding: 30px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 1px solid var(--sva-border); margin-bottom: 25px; }
-    .card h2 { margin-top: 0; color: var(--sva-primary); font-size: 20px; border-bottom: 2px solid var(--sva-bg); padding-bottom: 12px; margin-bottom: 20px;}
-    .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 25px; }
-    .kpi-card { background: #f0fdfa; padding: 25px; border-radius: 12px; border: 1px solid #ccfbf1; text-align: center; }
-    .kpi-title { font-size: 14px; font-weight: 600; color: #0f766e; text-transform: uppercase; margin-bottom: 5px;}
-    .kpi-value { font-size: 42px; font-weight: 800; color: #0d9488; }
     
-    /* Increased height to comfortably fit the stacked bar chart */
-    .chart-container { position: relative; height: 400px; width: 100%; margin: 0 auto;}
+    body { font-family: 'Inter', sans-serif; background-color: var(--sva-bg); color: var(--sva-text); margin: 0; padding-bottom: 60px; -webkit-font-smoothing: antialiased; }
     
-    .question-list { display: flex; flex-direction: column; gap: 15px; }
-    .question-item { background: white; border: 1px solid var(--sva-border); border-left: 4px solid var(--sva-primary); padding: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 20px;}
-    .q-text { font-size: 15px; font-weight: 500; line-height: 1.5; flex: 1;}
-    .q-score { font-size: 24px; font-weight: 800; color: var(--sva-primary); background: #f0fdfa; padding: 10px 20px; border-radius: 8px; text-align: center; min-width: 60px;}
-    .q-label { font-size: 11px; color: #64748b; text-transform: uppercase; display: block; font-weight: 600;}
-    .feedback-section { margin-top: 20px; }
-    .feedback-item { background: #fff; border: 1px solid var(--sva-border); padding: 15px 20px; border-radius: 8px; margin-bottom: 15px; font-size: 15px; line-height: 1.6; font-style: italic; color: #475569;}
-    .feedback-item::before { content: '"'; font-size: 20px; color: #cbd5e1; font-weight: bold; margin-right: 5px; }
-    .loader { text-align: center; padding: 50px; font-size: 18px; color: #64748b; font-weight: 500; }
-    .error-msg { background: #fee2e2; color: #b91c1c; padding: 20px; border-radius: 8px; text-align: center; font-weight: 600; border: 1px solid #fca5a5; margin-top: 50px;}
-    .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+    /* Header */
+    .top-nav { background: white; border-bottom: 1px solid var(--sva-border); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;}
+    .nav-brand { font-size: 18px; font-weight: 700; color: var(--sva-primary); letter-spacing: -0.5px;}
+    .nav-teacher { font-size: 15px; font-weight: 500; color: var(--sva-text-light); background: var(--sva-bg); padding: 6px 16px; border-radius: 20px; border: 1px solid var(--sva-border);}
+    .btn-print { background: white; border: 1px solid var(--sva-border); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-family: 'Inter'; font-weight: 600; color: var(--sva-text); transition: 0.2s;}
+    .btn-print:hover { background: var(--sva-bg); }
+
+    .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+    
+    /* KPI Row */
+    .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+    .kpi-card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--sva-border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: center;}
+    .kpi-value { font-size: 36px; font-weight: 800; color: var(--sva-primary); line-height: 1; margin-bottom: 8px;}
+    .kpi-label { font-size: 13px; font-weight: 600; color: var(--sva-text-light); text-transform: uppercase; letter-spacing: 0.5px;}
+    .kpi-highlight { background: #f0fdfa; border-color: #ccfbf1; }
+    .kpi-highlight .kpi-value { color: #0d9488; }
+
+    /* Section Headers */
+    .section-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: var(--sva-text); border-bottom: 2px solid var(--sva-border); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end;}
+    
+    /* Legend */
+    .legend { display: flex; gap: 15px; font-size: 12px; font-weight: 500; color: var(--sva-text-light); margin-bottom: 10px;}
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    /* Question Cards */
+    .q-card { background: white; border: 1px solid var(--sva-border); border-radius: 10px; padding: 24px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);}
+    .q-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; gap: 20px;}
+    .q-text { font-size: 15px; font-weight: 600; line-height: 1.5; color: var(--sva-text); flex: 1;}
+    .q-metrics { display: flex; gap: 15px; text-align: right;}
+    .metric-block { display: flex; flex-direction: column; align-items: flex-end;}
+    .m-val { font-size: 18px; font-weight: 700; color: var(--sva-text);}
+    .m-lbl { font-size: 11px; font-weight: 600; color: var(--sva-text-light); text-transform: uppercase;}
+    .m-val.approval { color: var(--color-sa); }
+
+    /* Custom CSS Stacked Bar */
+    .bar-container { width: 100%; height: 28px; background: #f1f5f9; border-radius: 6px; display: flex; overflow: hidden; margin-top: 5px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);}
+    .segment { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; transition: width 0.5s ease;}
+    .segment span { opacity: 0; animation: fadeIn 0.5s forwards 0.5s; text-shadow: 0 1px 1px rgba(0,0,0,0.2);}
+    .seg-sa { background-color: var(--color-sa); }
+    .seg-a { background-color: var(--color-a); }
+    .seg-d { background-color: var(--color-d); }
+    .seg-sd { background-color: var(--color-sd); }
+
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    /* Feedback Layout */
+    .feedback-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 40px;}
+    .feedback-col { background: white; border: 1px solid var(--sva-border); border-radius: 12px; padding: 25px;}
+    .feedback-title { font-size: 16px; font-weight: 700; margin-top: 0; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--sva-border);}
+    .f-item { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 16px; padding-left: 12px; border-left: 3px solid var(--sva-border);}
+    .f-item.strength { border-left-color: var(--color-sa); }
+    .f-item.enhance { border-left-color: var(--color-d); }
+
+    /* States */
+    .state-msg { text-align: center; padding: 100px 20px; font-size: 18px; color: var(--sva-text-light); font-weight: 500;}
+
+    /* Print Styles for clean PDF export */
+    @media print {
+      body { background: white; }
+      .top-nav { border-bottom: none; position: static; padding: 0; margin-bottom: 30px;}
+      .btn-print { display: none; }
+      .container { max-width: 100%; margin: 0; padding: 0;}
+      .q-card, .kpi-card, .feedback-col { box-shadow: none; break-inside: avoid; border: 1px solid #e2e8f0; }
+    }
+
     @media (max-width: 768px) {
-      .grid-layout { grid-template-columns: 1fr; }
-      .question-item { flex-direction: column; align-items: flex-start; text-align: left;}
-      .q-score { align-self: flex-start; width: 100%; box-sizing: border-box;}
+      .kpi-row, .feedback-grid { grid-template-columns: 1fr; }
+      .q-header { flex-direction: column; }
+      .q-metrics { width: 100%; justify-content: space-between; margin-top: 10px;}
     }
   </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>Educator Feedback Report</h1>
-  <p id="teacher-name-display">Verifying secure access...</p>
+<div class="top-nav">
+  <div class="nav-brand">SVA Educator Insights</div>
+  <div class="nav-teacher" id="nav-teacher-name">Authenticating...</div>
+  <button class="btn-print" onclick="window.print()">Print Report</button>
 </div>
 
-<div class="container" id="loading-state">
-  <div class="card loader">Securely fetching your feedback data...</div>
-</div>
-
-<div class="container" id="error-state" style="display: none;">
-  <div class="error-msg" id="error-text">Unable to load data. Please check your link.</div>
-</div>
+<div id="loading-state" class="state-msg">Securely decrypting feedback data...</div>
+<div id="error-state" class="state-msg" style="display: none; color: #b91c1c;"></div>
 
 <div class="container" id="dashboard-ui" style="display: none;">
   
-  <div class="card" style="background: #f8fafc; border: none; box-shadow: none; padding: 20px; text-align: center; color: #475569; font-size: 15px; line-height: 1.6; margin-bottom: 30px;">
-    <strong>Thank you for your dedication to our students!</strong><br>
-    These survey results are a reflection of your hard work and an opportunity to celebrate your successes. Scores are based on a 4.0 scale.
-  </div>
-
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <div class="kpi-title">Overall Average Score</div>
-      <div class="kpi-value" id="avg-score">0.00</div>
+  <div class="kpi-row">
+    <div class="kpi-card kpi-highlight">
+      <div class="kpi-value" id="kpi-approval">0%</div>
+      <div class="kpi-label">Overall Parent Approval</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-title">Total Parent Reviews</div>
-      <div class="kpi-value" id="total-reviews">0</div>
+      <div class="kpi-value" id="kpi-score">0.0</div>
+      <div class="kpi-label">Average Score (Out of 4.0)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value" id="kpi-reviews">0</div>
+      <div class="kpi-label">Total Parent Responses</div>
     </div>
   </div>
 
-  <div class="card">
-    <h2>Response Distribution (Exact Votes)</h2>
-    <div class="chart-container">
-      <canvas id="distributionChart"></canvas>
+  <div class="section-title">
+    <span>Detailed Breakdown</span>
+    <div class="legend">
+      <div class="legend-item"><div class="dot seg-sa"></div> Strongly Agree</div>
+      <div class="legend-item"><div class="dot seg-a"></div> Agree</div>
+      <div class="legend-item"><div class="dot seg-d"></div> Disagree</div>
+      <div class="legend-item"><div class="dot seg-sd"></div> Strongly Disagree</div>
     </div>
   </div>
 
-  <div class="card">
-    <h2>Detailed Averages</h2>
-    <div class="question-list">
-      <div class="question-item">
-        <div class="q-text">1. The teacher effectively fosters my child's academic growth and keeps them engaged in learning.</div>
-        <div class="q-score"><span id="q1-score">0.0</span><span class="q-label">Avg Score</span></div>
-      </div>
-      <div class="question-item">
-        <div class="q-text">2. The teacher creates a positive environment that enhances my child's social and emotional well-being.</div>
-        <div class="q-score"><span id="q2-score">0.0</span><span class="q-label">Avg Score</span></div>
-      </div>
-      <div class="question-item">
-        <div class="q-text">3. My child feels valued, respected, and supported by this teacher.</div>
-        <div class="q-score"><span id="q3-score">0.0</span><span class="q-label">Avg Score</span></div>
-      </div>
-      <div class="question-item">
-        <div class="q-text">4. The teacher provides clear and timely updates regarding my child's progress and classroom activities.</div>
-        <div class="q-score"><span id="q4-score">0.0</span><span class="q-label">Avg Score</span></div>
-      </div>
-      <div class="question-item">
-        <div class="q-text">5. The teacher is responsive and partners effectively with me to support my child.</div>
-        <div class="q-score"><span id="q5-score">0.0</span><span class="q-label">Avg Score</span></div>
-      </div>
+  <div id="questions-container">
     </div>
-  </div>
 
-  <div class="grid-layout">
-    <div class="card">
-      <h2 style="color: #10b981; border-bottom-color: #10b981;">Celebrated Strengths</h2>
-      <div class="feedback-section" id="feedback-strengths"></div>
+  <div class="feedback-grid">
+    <div class="feedback-col">
+      <h3 class="feedback-title" style="color: var(--color-sa);">Celebrated Strengths</h3>
+      <div id="list-strengths"></div>
     </div>
-    <div class="card">
-      <h2 style="color: #f59e0b; border-bottom-color: #f59e0b;">Opportunities for Growth</h2>
-      <div class="feedback-section" id="feedback-enhance"></div>
+    <div class="feedback-col">
+      <h3 class="feedback-title" style="color: var(--color-d);">Opportunities for Growth</h3>
+      <div id="list-enhance"></div>
     </div>
   </div>
 
@@ -130,6 +157,14 @@
   
   const scoreMap = { "Strongly Agree": 4, "Agree": 3, "Disagree": 2, "Strongly Disagree": 1 };
   
+  const questionsList = [
+    { id: 'q1', text: "1. The teacher effectively fosters my child's academic growth and keeps them engaged in learning." },
+    { id: 'q2', text: "2. The teacher creates a positive environment that enhances my child's social and emotional well-being." },
+    { id: 'q3', text: "3. My child feels valued, respected, and supported by this teacher." },
+    { id: 'q4', text: "4. The teacher provides clear and timely updates regarding my child's progress and classroom activities." },
+    { id: 'q5', text: "5. The teacher is responsive and partners effectively with me to support my child." }
+  ];
+
   const urlParams = new URLSearchParams(window.location.search);
   const accessId = urlParams.get('id');
 
@@ -146,7 +181,7 @@
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          document.getElementById('teacher-name-display').innerText = res.teacherName;
+          document.getElementById('nav-teacher-name').innerText = res.teacherName;
           if (res.data.length === 0) {
             showError(`No survey responses recorded yet for ${res.teacherName}.`);
             return;
@@ -166,148 +201,106 @@
     document.getElementById('dashboard-ui').style.display = 'none';
     const errorState = document.getElementById('error-state');
     errorState.style.display = 'block';
-    document.getElementById('error-text').innerText = msg;
+    errorState.innerText = msg;
   }
 
   function processAndRender(data) {
     document.getElementById('loading-state').style.display = 'none';
     document.getElementById('dashboard-ui').style.display = 'block';
 
-    document.getElementById('total-reviews').innerText = data.length;
+    const totalResponses = data.length;
+    document.getElementById('kpi-reviews').innerText = totalResponses;
 
-    let scores = { q1: [], q2: [], q3: [], q4: [], q5: [] };
-    
-    // Setup distribution counters for the exact votes
-    let distribution = {
-      q1: { "Strongly Agree": 0, "Agree": 0, "Disagree": 0, "Strongly Disagree": 0 },
-      q2: { "Strongly Agree": 0, "Agree": 0, "Disagree": 0, "Strongly Disagree": 0 },
-      q3: { "Strongly Agree": 0, "Agree": 0, "Disagree": 0, "Strongly Disagree": 0 },
-      q4: { "Strongly Agree": 0, "Agree": 0, "Disagree": 0, "Strongly Disagree": 0 },
-      q5: { "Strongly Agree": 0, "Agree": 0, "Disagree": 0, "Strongly Disagree": 0 }
-    };
-    
-    data.forEach(row => {
-      ['q1', 'q2', 'q3', 'q4', 'q5'].forEach(q => {
-        let answerText = row[q] ? row[q].trim() : "";
-        let val = scoreMap[answerText];
+    let totalPoints = 0;
+    let totalQuestionsAnswered = 0;
+    let totalPositiveVotes = 0; // For Overall Approval Rate
+
+    const qContainer = document.getElementById('questions-container');
+    qContainer.innerHTML = ''; // Clear loading state
+
+    // Process each question
+    questionsList.forEach(qInfo => {
+      let qPoints = 0;
+      let qAnswered = 0;
+      let counts = { sa: 0, a: 0, d: 0, sd: 0 };
+
+      // Tally votes for this question
+      data.forEach(row => {
+        const rawAns = row[qInfo.id] ? row[qInfo.id].trim() : "";
+        const val = scoreMap[rawAns];
         
-        // Calculate numerical averages
-        if (val) scores[q].push(val);
-        
-        // Tally exact distributions
-        if (distribution[q][answerText] !== undefined) {
-          distribution[q][answerText]++;
+        if (val) {
+          qPoints += val;
+          qAnswered++;
+          totalPoints += val;
+          totalQuestionsAnswered++;
+          
+          if (rawAns === "Strongly Agree") { counts.sa++; totalPositiveVotes++; }
+          else if (rawAns === "Agree") { counts.a++; totalPositiveVotes++; }
+          else if (rawAns === "Disagree") counts.d++;
+          else if (rawAns === "Strongly Disagree") counts.sd++;
         }
       });
+
+      // Calculate percentages for the bar
+      const p_sa = qAnswered ? ((counts.sa / qAnswered) * 100).toFixed(1) : 0;
+      const p_a  = qAnswered ? ((counts.a / qAnswered) * 100).toFixed(1) : 0;
+      const p_d  = qAnswered ? ((counts.d / qAnswered) * 100).toFixed(1) : 0;
+      const p_sd = qAnswered ? ((counts.sd / qAnswered) * 100).toFixed(1) : 0;
+
+      const qAvg = qAnswered ? (qPoints / qAnswered).toFixed(2) : "0.00";
+      const qApproval = qAnswered ? (((counts.sa + counts.a) / qAnswered) * 100).toFixed(0) : "0";
+
+      // Build the individual question card HTML
+      const cardHTML = `
+        <div class="q-card">
+          <div class="q-header">
+            <div class="q-text">${qInfo.text}</div>
+            <div class="q-metrics">
+              <div class="metric-block">
+                <span class="m-val approval">${qApproval}%</span>
+                <span class="m-lbl">Approval</span>
+              </div>
+              <div class="metric-block">
+                <span class="m-val">${qAvg}</span>
+                <span class="m-lbl">Avg Score</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-container">
+            <div class="segment seg-sa" style="width: ${p_sa}%"><span>${p_sa > 5 ? p_sa+'%' : ''}</span></div>
+            <div class="segment seg-a" style="width: ${p_a}%"><span>${p_a > 5 ? p_a+'%' : ''}</span></div>
+            <div class="segment seg-d" style="width: ${p_d}%"><span>${p_d > 5 ? p_d+'%' : ''}</span></div>
+            <div class="segment seg-sd" style="width: ${p_sd}%"><span>${p_sd > 5 ? p_sd+'%' : ''}</span></div>
+          </div>
+        </div>
+      `;
+      qContainer.innerHTML += cardHTML;
     });
 
-    const getAvg = (arr) => arr.length ? (arr.reduce((a,b) => a+b, 0) / arr.length).toFixed(2) : "0.00";
-    const avgData = [getAvg(scores.q1), getAvg(scores.q2), getAvg(scores.q3), getAvg(scores.q4), getAvg(scores.q5)];
+    // Set Overall KPIs
+    const overallAvg = totalQuestionsAnswered ? (totalPoints / totalQuestionsAnswered).toFixed(2) : "0.00";
+    const overallApproval = totalQuestionsAnswered ? ((totalPositiveVotes / totalQuestionsAnswered) * 100).toFixed(0) : "0";
     
-    document.getElementById('q1-score').innerText = avgData[0];
-    document.getElementById('q2-score').innerText = avgData[1];
-    document.getElementById('q3-score').innerText = avgData[2];
-    document.getElementById('q4-score').innerText = avgData[3];
-    document.getElementById('q5-score').innerText = avgData[4];
+    document.getElementById('kpi-score').innerText = overallAvg;
+    document.getElementById('kpi-approval').innerText = overallApproval + "%";
 
-    const validAvgs = avgData.filter(v => parseFloat(v) > 0);
-    const overallAvg = validAvgs.length ? (validAvgs.reduce((a,b) => parseFloat(a)+parseFloat(b), 0) / validAvgs.length).toFixed(2) : "0.00";
-    document.getElementById('avg-score').innerText = overallAvg;
-
-    // Render the new stacked bar chart
-    renderDistributionChart(distribution);
-
-    const containerS = document.getElementById('feedback-strengths'); 
-    const containerE = document.getElementById('feedback-enhance');
+    // Process Written Feedback
+    const containerS = document.getElementById('list-strengths'); 
+    const containerE = document.getElementById('list-enhance');
     containerS.innerHTML = ''; containerE.innerHTML = '';
     
     [...data].reverse().forEach(row => {
       if (row.strengths && row.strengths.trim()) {
-        containerS.innerHTML += `<div class="feedback-item">${row.strengths}</div>`;
+        containerS.innerHTML += `<div class="f-item strength">${row.strengths}</div>`;
       }
       if (row.enhance && row.enhance.trim()) {
-        containerE.innerHTML += `<div class="feedback-item">${row.enhance}</div>`;
+        containerE.innerHTML += `<div class="f-item enhance">${row.enhance}</div>`;
       }
     });
 
-    if (!containerS.innerHTML) containerS.innerHTML = "<div style='color:#94a3b8; text-align:center;'>No written strengths provided yet.</div>";
-    if (!containerE.innerHTML) containerE.innerHTML = "<div style='color:#94a3b8; text-align:center;'>No written feedback provided yet.</div>";
-  }
-
-  // NEW FUNCTION: Renders a Horizontal Stacked Bar Chart
-  function renderDistributionChart(distData) {
-    const ctx = document.getElementById('distributionChart').getContext('2d');
-    
-    // Labels for the Y-Axis
-    const labels = [
-      'Q1: Academic Growth', 
-      'Q2: Social/Emotional', 
-      'Q3: Respect & Support', 
-      'Q4: Communication', 
-      'Q5: Partnership'
-    ];
-
-    // Helper to extract data arrays for Chart.js
-    const getDataArray = (category) => [
-      distData.q1[category], 
-      distData.q2[category], 
-      distData.q3[category], 
-      distData.q4[category], 
-      distData.q5[category]
-    ];
-
-    new Chart(ctx, {
-      type: 'bar',
-      data: { 
-        labels: labels, 
-        datasets: [
-          {
-            label: 'Strongly Agree',
-            data: getDataArray('Strongly Agree'),
-            backgroundColor: '#0f766e' // Dark Teal
-          },
-          {
-            label: 'Agree',
-            data: getDataArray('Agree'),
-            backgroundColor: '#14b8a6' // Light Teal
-          },
-          {
-            label: 'Disagree',
-            data: getDataArray('Disagree'),
-            backgroundColor: '#f59e0b' // Amber/Orange
-          },
-          {
-            label: 'Strongly Disagree',
-            data: getDataArray('Strongly Disagree'),
-            backgroundColor: '#ef4444' // Red
-          }
-        ] 
-      },
-      options: { 
-        indexAxis: 'y', // Makes the bar chart horizontal
-        responsive: true, 
-        maintainAspectRatio: false, 
-        scales: { 
-          x: { 
-            stacked: true, 
-            ticks: { stepSize: 1 } // Ensures the X axis only shows whole numbers (votes)
-          },
-          y: { 
-            stacked: true 
-          }
-        }, 
-        plugins: { 
-          legend: { 
-            position: 'top',
-            labels: { font: { family: 'Inter', size: 13 } }
-          },
-          tooltip: {
-            mode: 'index',
-            intersect: false
-          }
-        } 
-      }
-    });
+    if (!containerS.innerHTML) containerS.innerHTML = "<div style='color:#94a3b8; font-style:italic;'>No written strengths provided.</div>";
+    if (!containerE.innerHTML) containerE.innerHTML = "<div style='color:#94a3b8; font-style:italic;'>No written feedback provided.</div>";
   }
 </script>
 </body>
